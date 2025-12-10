@@ -25,6 +25,16 @@ O objetivo desta atividade é realizar uma análise de segurança (estática e, 
 5. **Matriz de Risco:** Elaborar uma tabela consolidada dos ataques, ordenada de forma decrescente pelo risco.
 6. **Análise Dinâmica (Extra):** Realizar a montagem física e executar um teste de ataque manual, registrando evidências.
 
+## Tabela de Ataques
+
+|**Título do Ataque**|**Nível de Impacto**|**Nível de Probabilidade**|**Explicação Técnica**|
+|---|---|---|---|
+|**Combined Attack (Colapso Total)**|**Crítico**|**Alto**|Execução simultânea de todos os vetores. O sistema sofre sobrecarga de CPU, memória e conexões ao mesmo tempo, resultando em travamento imediato e irreversível sem _hard reset_.|
+|**Buffer Overflow (Header Explosion)**|**Alto**|**Alto**|Envio de headers HTTP gigantes (10KB+) excedendo o buffer de recepção. Causa corrupção direta da memória RAM (Heap/Stack), levando a _Kernel Panic_ e reinicialização forçada.|
+|**Path Injection (Stack Overflow)**|**Alto**|**Alto**|Requisição de URLs malformadas com milhares de caracteres (5000+). Ao tentar processar a string (ex: `indexOf`), o dispositivo esgota a memória ou estoura a pilha, causando travamento.|
+|**Rapid Flooding (CPU Stress)**|**Médio**|**Médio**|Requisições repetitivas em alta velocidade forçando a geração de HTML pesado. Ocupa 100% da CPU, travando outras tarefas e acionando o _Watchdog Timer_ (WDT) por demora na resposta.|
+|**Slowloris (Connection Starvation)**|**Médio**|**Médio**|Abertura de múltiplas conexões (30+) enviando dados lentamente para evitar _timeout_. Esgota o número limitado de sockets do ESP32, impedindo o acesso de usuários legítimos (Negação de Serviço).|
+
 ## Critérios de Avaliação (Barema)
 
 | Critério | Pontuação |
