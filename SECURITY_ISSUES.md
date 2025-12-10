@@ -1,72 +1,77 @@
-# Security Vulnerabilities in the ESP32 Web Server Project
+# Vulnerabilidades de Segurança no Projeto de Servidor Web ESP32
 
-This document outlines the security vulnerabilities found in the ESP32 web server project.
+Este documento descreve as vulnerabilidades de segurança encontradas no projeto de servidor web ESP32.
 
-## 1. Hardcoded WiFi Credentials
+## 1. Credenciais WiFi Codificadas (Hardcoded)
 
-**Vulnerability:** The WiFi network SSID and password are hardcoded directly in the `src/main.cpp` file.
+**Vulnerabilidade:** O SSID e a senha da rede WiFi estão codificados diretamente no arquivo `src/main.cpp`.
 
-**File:** `src/main.cpp`
-**Lines:**
+**Arquivo:** `src/main.cpp`
+**Linhas:**
 ```cpp
 const char* ssid = "Inteli.Iot";
 const char* password = "%(Yk(sxGMtvFEs.3";
 ```
 
-**Risk:** Storing credentials in source code is highly insecure. If the code is shared, published to a version control system, or the device's firmware is read, these credentials will be exposed, granting unauthorized access to the WiFi network.
+**Risco:** Armazenar credenciais no código-fonte é altamente inseguro. Se o código for compartilhado, publicado em um sistema de controle de versão ou se o firmware do dispositivo for lido, essas credenciais serão expostas, concedendo acesso não autorizado à rede WiFi.
 
-**Mitigation:**
-- Use a provisioning method to set credentials at runtime, such as WiFiManager, SmartConfig, or a configuration file stored in SPIFFS/LittleFS.
-- Store credentials in a separate, untracked configuration file (e.g., `config.h`) that is included by the main source file but excluded from version control using `.gitignore`.
-- Use environment variables if the build system supports them.
+**Mitigação:**
 
-## 2. Lack of Authentication and Authorization
+- Use um método de provisionamento para definir credenciais em tempo de execução, como WiFiManager, SmartConfig ou um arquivo de configuração armazenado em SPIFFS/LittleFS.
+- Armazene credenciais em um arquivo de configuração separado e não rastreado (por exemplo, `config.h`) que é incluído pelo arquivo de origem principal, mas excluído do controle de versão usando `.gitignore`.
+- Use variáveis de ambiente se o sistema de compilação as suportar.
 
-**Vulnerability:** The web server does not implement any form of authentication or authorization. Anyone connected to the same WiFi network can send HTTP requests to control the GPIO pins.
+## 2. Falta de Autenticação e Autorização
 
-**File:** `src/main.cpp` (within the `loop()` function)
+**Vulnerabilidade:** O servidor web não implementa nenhuma forma de autenticação ou autorização. Qualquer pessoa conectada à mesma rede WiFi pode enviar solicitações HTTP para controlar os pinos GPIO.
 
-**Risk:** This allows any user (or malicious actor) on the network to freely control the hardware connected to the GPIO pins. This could lead to physical damage, disruption of service, or other unintended consequences.
+**Arquivo:** `src/main.cpp` (dentro da função `loop()`)
 
-**Mitigation:**
-- Implement a login system with a username and password.
-- Use API keys or access tokens that must be included in the HTTP request headers.
-- Restrict access to a specific list of IP or MAC addresses.
+**Risco:** Isso permite que qualquer usuário (ou ator mal-intencionado) na rede controle livremente o hardware conectado aos pinos GPIO. Isso pode levar a danos físicos, interrupção do serviço ou outras consequências não intencionais.
 
-## 3. Insecure Communication (HTTP)
+**Mitigação:**
 
-**Vulnerability:** The server uses plain HTTP for all communication. All data is transmitted in cleartext.
+- Implemente um sistema de login com nome de usuário e senha.
+- Use chaves de API ou tokens de acesso que devem ser incluídos nos cabeçalhos da solicitação HTTP.
+- Restrinja o acesso a uma lista específica de endereços IP ou MAC.
 
-**File:** `src/main.cpp`
-**Line:** `WiFiServer server(80);`
+## 3. Comunicação Insegura (HTTP)
 
-**Risk:** An attacker on the same network can perform a Man-in-the-Middle (MitM) attack to intercept, read, or modify the traffic between the client and the ESP32. This is especially dangerous if authentication is added, as credentials would be sent in cleartext.
+**Vulnerabilidade:** O servidor usa HTTP simples para toda a comunicação. Todos os dados são transmitidos em texto não criptografado (cleartext).
 
-**Mitigation:**
-- Implement HTTPS to encrypt all communication. The `WiFiClientSecure` class can be used along with a self-signed or CA-issued SSL/TLS certificate.
+**Arquivo:** `src/main.cpp`
+**Linha:** `WiFiServer server(80);`
 
-## 4. Denial of Service (DoS) Vulnerability
+**Risco:** Um invasor na mesma rede pode realizar um ataque Man-in-the-Middle (MitM) para interceptar, ler ou modificar o tráfego entre o cliente e o ESP32. Isso é especialmente perigoso se a autenticação for adicionada, pois as credenciais seriam enviadas em texto não criptografado.
 
-**Vulnerability:** The global `header` variable, which is a `String` object, continuously concatenates incoming data from the client without a size limit.
+**Mitigação:**
 
-**File:** `src/main.cpp`
-**Line:** `header += c;`
+- Implemente HTTPS para criptografar toda a comunicação. A classe `WiFiClientSecure` pode ser usada junto com um certificado SSL/TLS autoassinado ou emitido por CA.
 
-**Risk:** A malicious client can send a very large HTTP request, causing the `header` string to grow indefinitely. This will quickly exhaust the limited RAM on the ESP32, leading to a system crash and reboot (Denial of Service).
+## 4. Vulnerabilidade de Negação de Serviço (DoS)
 
-**Mitigation:**
-- Enforce a reasonable size limit on the incoming HTTP request.
-- Read the request line by line and parse it on the fly, instead of accumulating the entire request in a single large string. Discard any data that exceeds the maximum allowed header size.
-- Use character arrays (`char[]`) with a fixed size instead of the `String` class for better memory management and to prevent heap fragmentation.
+**Vulnerabilidade:** A variável global `header`, que é um objeto `String`, concatena continuamente os dados recebidos do cliente sem um limite de tamanho.
 
-## 5. Cross-Site Request Forgery (CSRF)
+**Arquivo:** `src/main.cpp`
+**Linha:** `header += c;`
 
-**Vulnerability:** State-changing operations (turning GPIOs on/off) are triggered by simple HTTP `GET` requests.
+**Risco:** Um cliente mal-intencionado pode enviar uma solicitação HTTP muito grande, fazendo com que a string `header` cresça indefinidamente. Isso esgotará rapidamente a RAM limitada no ESP32, levando a uma falha do sistema e reinicialização (Negação de Serviço).
 
-**File:** `src/main.cpp` (within the `loop()` function)
+**Mitigação:**
 
-**Risk:** An attacker can craft a malicious web page, email, or link that sends a request to the ESP32's IP address. If a user on the same local network interacts with this malicious content (e.g., by visiting a web page), their browser will automatically send the request to the ESP32, changing the GPIO state without their knowledge or consent. For example, an attacker could embed `<img src="http://<ESP32_IP>/26/on">` in a forum post.
+- Imponha um limite de tamanho razoável na solicitação HTTP recebida.
+- Leia a solicitação linha por linha e analise-a em tempo real, em vez de acumular toda a solicitação em uma única string grande. Descarte quaisquer dados que excedam o tamanho máximo permitido do cabeçalho.
+- Use arrays de caracteres (`char[]`) com um tamanho fixo em vez da classe `String` para melhor gerenciamento de memória e para evitar fragmentação de heap.
 
-**Mitigation:**
-- Use HTTP `POST` requests for any state-changing actions instead of `GET`.
-- Implement an anti-CSRF token mechanism. The server should generate a unique, random token for each session or request and require it to be included in subsequent `POST` requests.
+## 5. Falsificação de Solicitação entre Sites (CSRF)
+
+**Vulnerabilidade:** As operações de mudança de estado (ligar/desligar GPIOs) são acionadas por solicitações HTTP `GET` simples.
+
+**Arquivo:** `src/main.cpp` (dentro da função `loop()`)
+
+**Risco:** Um invasor pode criar uma página da web, e-mail ou link malicioso que envia uma solicitação para o endereço IP do ESP32. Se um usuário na mesma rede local interagir com esse conteúdo malicioso (por exemplo, visitando uma página da web), seu navegador enviará automaticamente a solicitação para o ESP32, alterando o estado do GPIO sem seu conhecimento ou consentimento. Por exemplo, um invasor pode incorporar `<img src="http://<ESP32_IP>/26/on">` em uma postagem de fórum.
+
+**Mitigação:**
+
+- Use solicitações HTTP `POST` para quaisquer ações de mudança de estado em vez de `GET`.
+- Implemente um mecanismo de token anti-CSRF. O servidor deve gerar um token único e aleatório para cada sessão ou solicitação e exigir que ele seja incluído em solicitações `POST` subsequentes.
