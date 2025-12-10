@@ -2,13 +2,13 @@
 
 Este repositório contém os artefatos da atividade ponderada realizada em sala, focada na análise de segurança de um servidor web embarcado no ESP32.
 
-## 📄 Relatório de Segurança
+## Relatório de Segurança
 
 A análise completa das vulnerabilidades identificadas, juntamente com a descrição dos ataques, riscos e mitigações, está documentada no arquivo:
 
-👉 **[SECURITY_ISSUES.md](./SECURITY_ISSUES.md)**
+**[SECURITY_ISSUES.md](./SECURITY_ISSUES.md)**
 
-## 📝 Proposta da Atividade
+## Proposta da Atividade
 
 O objetivo desta atividade é realizar uma análise de segurança (estática e, opcionalmente, dinâmica) em um código de exemplo de servidor web para ESP32, identificando pontos fracos e vetores de ataque.
 
@@ -25,7 +25,7 @@ O objetivo desta atividade é realizar uma análise de segurança (estática e, 
 5. **Matriz de Risco:** Elaborar uma tabela consolidada dos ataques, ordenada de forma decrescente pelo risco.
 6. **Análise Dinâmica (Extra):** Realizar a montagem física e executar um teste de ataque manual, registrando evidências.
 
-## 🏆 Critérios de Avaliação (Barema)
+## Critérios de Avaliação (Barema)
 
 | Critério | Pontuação |
 | :--- | :--- |
