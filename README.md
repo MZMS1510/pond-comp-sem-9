@@ -45,3 +45,13 @@ O objetivo desta atividade é realizar uma análise de segurança (estática e, 
 | Probabilidade, impacto e risco com justificativas | Até 2,0 pontos |
 | Tabela consolidada de ataques ordenada por risco | Até 1,0 ponto |
 | **(Ir além)** Análise dinâmica com teste de ataque manual e evidências | Até 1,0 ponto |
+
+## Contribuição individual dos membros
+
+* Daniel Guilguer: Ajudou na definição dos ataques e na elaboração do relatório.
+* Davi Duarte: Realizou os testes dos atauques e coletou evidências.
+* Guilherme Hassenpflug: Contribuiu para a disccussão das vulnerabilidades e revisão do relatório.
+* Marcos Marcones: Coordenou a montagem do ambiente e auxiliou na análise técnica.
+* Maria Clara Oliveira: Documentou os ataques e contribuiu para a descrição do relatório.
+* Pedro Siqueira: Liderou a análise estática do código e ajudou na criação da matriz de risco.
+* Rayssa Guedes: Preparou a apresentação dos resultados e ajudou na formatação do relatório.
