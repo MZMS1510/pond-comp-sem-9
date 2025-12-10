@@ -75,3 +75,24 @@ const char* password = "%(Yk(sxGMtvFEs.3";
 
 - Use solicitações HTTP `POST` para quaisquer ações de mudança de estado em vez de `GET`.
 - Implemente um mecanismo de token anti-CSRF. O servidor deve gerar um token único e aleatório para cada sessão ou solicitação e exigir que ele seja incluído em solicitações `POST` subsequentes.
+
+## 6. Controle Direto de LEDs via URL (endpoints previsíveis)
+
+**Vulnerabilidade:**  
+O firmware permite alterar o estado dos LEDs/GPIOs diretamente por meio de URLs previsíveis (por exemplo: `http://<ESP32_IP>/26/on` e `http://<ESP32_IP>/26/off`). Isso significa que qualquer cliente capaz de alcançar o servidor pode manipular o hardware apenas acessando links específicos.
+
+**Arquivo:** `src/main.cpp`  
+**Local:** Lógica de análise da requisição HTTP dentro da função `loop()`.
+
+**Risco:**  
+- Endpoints simples e totalmente previsíveis permitem que qualquer usuário da rede (ou um invasor) controle facilmente os GPIOs.  
+- Scanners automatizados podem detectar esses padrões e manipular o dispositivo sem autorização.  
+- Combina-se com outras vulnerabilidades (como ausência de autenticação e CSRF), facilitando ataques remotos sem interação do usuário.  
+- Se o número do pino é utilizado diretamente da URL sem validação, entradas maliciosas podem causar comportamentos inesperados.
+
+**Mitigação:**  
+- Remover o controle direto via `GET` público e migrar para uma API baseada em `POST` autenticada.  
+- Exigir autenticação (senha, token, API key ou sessão).  
+- Validar estritamente qualquer valor extraído da URL e permitir apenas pinos pré-configurados.  
+- Implementar rate-limiting e registro de tentativas de acesso.  
+- Utilizar HTTPS/TLS para proteger o tráfego e evitar vazamento de comandos.  
